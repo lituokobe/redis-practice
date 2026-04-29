@@ -240,3 +240,119 @@ Use Pub/Sub tool to subscribe to channels.
 > publish bbn beautiful
 (integer) 1
 ```
+```redis-cli
+> XADD BBN * course redis
+"1777383534135-0"
+
+> XADD BBN * course docker #add streem, * add the id for the item
+"1777383556829-0"
+
+> XADD BBN * course git
+"1777383564863-0"
+
+> XLEN BBN
+(integer) 3
+
+> XRANGE BBN - + # Check the full stream
+1) 1) "1777383534135-0"
+   2) 1) "course"
+      2) "redis"
+2) 1) "1777383556829-0"
+   2) 1) "course"
+      2) "docker"
+3) 1) "1777383564863-0"
+   2) 1) "course"
+      2) "git"
+
+> XREAD COUNT 2 BLOCK 1000 STREAMS BBN 0 # Read 2 items, blcok for 1000ms if no item, from 0th
+1) 1) "BBN"
+   2) 1) 1) "1777383534135-0"
+         2) 1) "course"
+            2) "redis"
+      2) 1) "1777383556829-0"
+         2) 1) "course"
+            2) "docker"
+
+> XGROUP CREATE BBN group1 0 #create consumer group from current stream
+"OK"
+
+> XINFO GROUPS BBN
+1) 1) "name"
+   2) "group1"
+   3) "consumers"
+   4) "0"
+   5) "pending"
+   6) "0"
+   7) "last-delivered-id"
+   8) "0-0"
+   9) "entries-read"
+   10) "null"
+   11) "lag"
+   12) "null"
+
+> XGROUP CREATECONSUMER BBN group1 consumer1
+(integer) 1
+
+> XGROUP CREATECONSUMER BBN group1 consumer2
+(integer) 1
+
+> XINFO GROUPS BBN
+1) 1) "name"
+   2) "group1"
+   3) "consumers"
+   4) "2"
+   5) "pending"
+   6) "0"
+   7) "last-delivered-id"
+   8) "0-0"
+   9) "entries-read"
+   10) "null"
+   11) "lag"
+   12) "null"
+```
+```redis-cli
+> GEOADD city 115.543 49.2324 Shijiazhuang # create a location with lattitude and altitude
+(integer) 1
+
+> GEOADD city 35.5423 42.2324 Qinhuangdao
+(integer) 1
+
+> GEOPOS city Shijiazhuang # show all the locations
+1) 1) "115.54300099611282349"
+   2) "49.23239982415405791"
+
+> GEODIST city Shijiazhuang Qinhuangdao # get the distance (by m by default)
+"5964997.5180"
+
+> GEODIST city Shijiazhuang Qinhuangdao KM # get the distance by km
+"5964.9975"
+
+> GEOSEARCH city FROMMEMBER Qinhuangdao BYRADIUS 6000 KM # search by radius
+1) "Qinhuangdao"
+2) "Shijiazhuang"
+```
+```redis-cli
+> PFADD course git docker redis # create a hyperlog, whose base number is the count of unique values
+(integer) 1
+
+> PFADD course
+(integer) 0
+
+> PFCOUNT course
+(integer) 3
+
+> PFADD course nginx
+(integer) 1
+
+> PFCOUNT course
+(integer) 4
+
+> PFADD course 2 python git go
+(integer) 1
+
+> PFMERGE result course course2 # merge to hyperlog
+"OK"
+
+> PFcount result
+(integer) 7
+```
