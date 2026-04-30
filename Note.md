@@ -356,3 +356,78 @@ Use Pub/Sub tool to subscribe to channels.
 > PFcount result
 (integer) 7
 ```
+```redis-cli
+> SETBIT dianzan 0 1 # set a bitmap (value can only be 1 or 0), first digit to be one
+(integer) 0
+
+> SETBIT dianzan 1 0 # set a bitmap (value can only be 1 or 0), second digit to be zero
+(integer) 0
+
+> GETBIT dianzan 0
+(integer) 1
+ 
+> SET dianzan "\xF0"  # set the bitmap to be 11110000
+"OK"
+
+> GETBIT dianzan 4 # get the fifth element of the bitmap
+(integer) 0
+
+> BITCOUNT dianzan # sum of the bitmap
+(integer) 4
+
+> BITPOS dianzan 0 # first zero's position
+(integer) 4
+
+> BITPOS dianzan 1 # fist one's position
+(integer) 0
+```
+
+```redis-cli
+> BITFIELD player:1 set u8 #0 1 # Create a bitfield, the player is 1, use u8 encoding, first digit (No.0) is one
+1) "0"
+
+> GET player:1
+"\x01"
+
+> BITFIELD player:1 get u8 #0
+1) "1"
+
+> BITFIELD player:1 set u32 #1 100 # Create a bitfield, the player is 1, use u32 encoding, second digit (No.1) is 100
+1) "0"
+
+> GET player:1
+"\x01\x00\x00\x00\x00\x00\x00d"
+
+> BITFIELD player:1 get u32 #1
+1) "100"
+
+> BITFIELD player:1 incrby u32 #1 100 # increase the second digit by 100
+1) "200"
+```
+```redis-cli
+> SET k3 3
+"OK"
+
+> SET k4 v4
+"OK"
+
+> SET k5 5
+"OK"
+
+> MULTI # make a queue of events
+"OK"
+
+> INCR k3
+"QUEUED"
+
+> INCR k4
+"QUEUED"
+
+> INCR k5
+"QUEUED"
+
+> EXEC # executet the queue. Even if there is an error, it will keep executing without being intterupted
+1) "4"
+2) "ReplyError: ERR value is not an integer or out of range"
+3) "6"
+```
